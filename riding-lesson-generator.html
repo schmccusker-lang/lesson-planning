@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Riding Lesson Generator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, serif; background: #f4f0e8; min-height: 100vh; }
+  button { font-family: Georgia, serif; cursor: pointer; }
+  .header { background: #1c1812; color: #f5e6c8; padding: 26px 24px 20px; text-align: center; border-bottom: 4px solid #8b6914; }
+  .header-sub { font-size: 10px; letter-spacing: 5px; text-transform: uppercase; color: #c9a84c; margin-bottom: 5px; }
+  .header h1 { font-size: clamp(20px,5vw,32px); font-weight: normal; }
+  .header p { margin: 7px 0 0; color: #9a8060; font-size: 12px; }
+  .container { max-width: 720px; margin: 0 auto; padding: 24px 14px; }
+  .card { background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 2px 18px rgba(0,0,0,0.09); border: 1px solid #ddd4c0; margin-bottom: 20px; }
+  .ctrl-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #999; margin-bottom: 10px; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .level-btn { padding: 8px 18px; border-radius: 30px; font-size: 14px; border: 2px solid #ddd; background: #faf8f4; color: #777; transition: all .15s; }
+  .type-btn { padding: 10px 24px; border-radius: 10px; font-size: 14px; border: 2px solid #ddd; background: #faf8f4; color: #777; transition: all .15s; }
+  .tag-btn { padding: 7px 14px; border-radius: 20px; font-size: 13px; border: 1.5px solid #ddd; background: #faf8f4; color: #888; transition: all .15s; }
+  .generate-btn { width: 100%; padding: 14px; background: #8b6914; color: #fff; border: none; border-radius: 10px; font-size: 15px; letter-spacing: 0.5px; }
+  .generate-btn:hover { background: #7a5c10; }
+  .no-match { background: #fff8e1; border: 1px solid #e8c84a; border-radius: 10px; padding: 16px 20px; margin-bottom: 18px; color: #7a5a00; font-size: 14px; }
+  .lesson-header { padding: 20px 24px; border-bottom-width: 3px; border-bottom-style: solid; }
+  .lesson-meta { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 4px; }
+  .lesson-title { font-size: 21px; font-weight: normal; margin-bottom: 12px; }
+  .goal-chip { background: #fff; border-radius: 20px; padding: 3px 11px; font-size: 12px; display: inline-block; margin: 3px; border-width: 1px; border-style: solid; }
+  .tag-chip { border-radius: 12px; padding: 2px 10px; font-size: 11px; display: inline-block; margin: 2px; border-width: 1px; border-style: solid; }
+  .lesson-body { padding: 22px 24px; }
+  .section-head { font-size: 14px; font-weight: normal; letter-spacing: 0.3px; padding-bottom: 6px; margin-bottom: 10px; border-bottom-width: 1px; border-bottom-style: solid; }
+  .ex-block { background: #faf8f5; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; border-left-width: 3px; border-left-style: solid; }
+  .ex-name { font-weight: bold; color: #1c1812; font-size: 14px; }
+  .ex-duration { font-size: 10px; color: #aaa; }
+  .ex-desc { font-size: 13px; color: #555; line-height: 1.65; margin-top: 4px; }
+  .sub-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; margin: 8px 0 4px; }
+  .tip-line { font-size: 12px; color: #555; margin-bottom: 3px; }
+  .mistake-line { font-size: 12px; color: #903020; margin-bottom: 3px; }
+  .best-practice { background: #fdf7e8; border: 1px solid #c9a84c; border-left: 4px solid #c9a84c; border-radius: 8px; padding: 12px 15px; margin-bottom: 13px; font-size: 13px; color: #5a4412; font-style: italic; line-height: 1.65; }
+  .safety-box { background: #fff8f0; border: 1px solid #e8a030; border-left: 4px solid #e8a030; border-radius: 8px; padding: 12px 15px; margin-bottom: 16px; }
+  .safety-title { font-weight: bold; color: #a04000; margin-bottom: 6px; font-size: 13px; }
+  .safety-line { font-size: 13px; color: #7a3000; margin-bottom: 3px; }
+  .action-row { display: flex; gap: 10px; margin-top: 4px; }
+  .new-btn { padding: 9px 18px; background: #8b6914; color: #fff; border: none; border-radius: 8px; font-size: 13px; }
+  .save-btn { padding: 9px 18px; background: #1c1812; color: #f5e6c8; border: none; border-radius: 8px; font-size: 13px; }
+  .saved-header { padding: 14px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #f9f6f0; border-radius: 14px; }
+  .saved-body { padding: 14px 20px; }
+  .saved-item { padding-bottom: 9px; margin-bottom: 9px; border-bottom: 1px solid #ece8e0; }
+  .saved-item:last-child { border-bottom: none; margin-bottom: 0; }
+  .saved-title { font-weight: bold; color: #1c1812; font-size: 14px; }
+  .saved-meta { font-size: 11px; color: #999; margin-top: 2px; }
+  .diagram-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #888; margin: 10px 0 4px; }
+  svg.arena-diagram { width: 100%; max-width: 300px; display: block; border: 2px solid #bbb; border-radius: 4px; background: #f8f6f0; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 2px; font-size: 11px; color: #666; }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+  .legend-dot { width: 14px; height: 5px; border-radius: 3px; display: inline-block; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-sub">Equestrian Coaching Tool</div>
+  <h1>🐴 Lesson Plan Generator</h1>
+  <p>BHS &middot; USEF &middot; Pony Club best practices</p>
+</div>
+
+<div class="container">
+  <!-- Controls -->
+  <div class="card">
+    <div class="ctrl-label">Rider Level</div>
+    <div class="btn-row" id="level-btns"></div>
+    <div class="ctrl-label">Lesson Type</div>
+    <div class="btn-row" id="type-btns"></div>
+    <div class="ctrl-label">Focus / Filter <span style="font-weight:normal;letter-spacing:0;text-transform:none;font-size:11px;color:#aaa">(optional — select one or more)</span></div>
+    <div class="btn-row" id="tag-btns"></div>
+    <button class="generate-btn" onclick="generateLesson()">✨ Generate Lesson Plan</button>
+  </div>
+
+  <div id="no-match" class="no-match" style="display:none"></div>
+  <div id="lesson-card" style="display:none"></div>
+  <div id="saved-section" style="display:none">
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="saved-header" onclick="toggleSaved()">
+        <span id="saved-label" style="color:#4a3a1a;font-size:14px">📋 Saved Lessons (0)</span>
+        <span id="saved-arrow" style="color:#8b6914">▼</span>
+      </div>
+      <div id="saved-body" class="saved-body" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const ALL_TAGS = ["Lead changes","Adjustability & distances","Balance & position","Rhythm & straightness","Contact & collection","Dressage fundamentals","Pace & tempo"];
+const TAG_COLORS = {
+  "Lead changes":             { bg: "#f3e8ff", text: "#6a1b9a", border: "#ce93d8" },
+  "Adjustability & distances":{ bg: "#e3f2fd", text: "#1565c0", border: "#90caf9" },
+  "Balance & position":       { bg: "#e8f5e9", text: "#2e7d32", border: "#a5d6a7" },
+  "Rhythm & straightness":    { bg: "#fff8e1", text: "#c8871a", border: "#ffe082" },
+  "Contact & collection":     { bg: "#fce4ec", text: "#880e4f", border: "#f48fb1" },
+  "Dressage fundamentals":    { bg: "#e8eaf6", text: "#283593", border: "#9fa8da" },
+  "Pace & tempo":             { bg: "#e0f7fa", text: "#006064", border: "#80deea" },
+};
+const levelStyles = {
+  Beginner:     { bg: "#e8f5e9", accent: "#388e3c", text: "#1b5e20" },
+  Intermediate: { bg: "#fff8e1", accent: "#c8871a", text: "#7a4a00" },
+  Advanced:     { bg: "#fce4ec", accent: "#c62828", text: "#880e4f" },
+};
+const LESSONS = {
+  Beginner: {
+    Flat: [
+      {
+        title: "Finding Your Rhythm",
+        duration: "45 minutes",
+        tags: ["Balance & position","Rhythm & straightness","Dressage fundamentals","Pace & tempo"],
+        goals: ["Maintain consistent contact at walk and trot","Use legs independently from hands","Build a secure, balanced position"],
+        warmup: { name: "Free Walk on a Long Rein", duration: "8 min", description: "Allow the horse to stretch long and low while the rider focuses on following the motion with their seat. Encourage deep breathing and relaxing through the hips." },
+        mainExercises: [
+          { name: "Halt-Walk Transitions on a 20m Circle", duration: "10 min", diagram: "halt-walk-transitions", description: "Practice smooth upward and downward transitions using seat and leg first, then rein. Ask for halt at specific markers to develop precision.", coachingTips: ["Sit tall before asking for halt","Leg should close before the hand acts"], commonMistakes: ["Pulling back with both hands simultaneously","Looking down at the horse\'s head"] },
+          { name: "Rising Trot Poles", duration: "12 min", diagram: "rising-trot-poles", description: "Place 3-4 ground poles on a 20m circle spaced for trot. Rider focuses on maintaining rhythm and not interfering with the horse\'s back as it steps over poles.", coachingTips: ["Eyes up, look ahead to the next pole","Allow the hands to follow slightly as the horse\'s neck moves"], commonMistakes: ["Gripping with the knee and tipping forward","Stiffening through the elbow"] },
+          { name: "Serpentine at Walk and Trot", duration: "10 min", diagram: "serpentine", description: "Ride a 3-loop serpentine across the arena. Focus on bending the horse around the inside leg and thinking ahead to the next loop.", coachingTips: ["Plan the next loop before finishing the current one","Inside leg at the girth, outside leg slightly back"], commonMistakes: ["Turning with the inside rein only","Forgetting to change diagonal at trot"] }
+        ],
+        cooldown: { name: "Stretchy Trot and Walk", duration: "5 min", description: "Allow the horse to chew the reins out of the hand on a large circle, finishing with a relaxed free walk on a long rein." },
+        bestPracticeNote: "Pony Club and BHS both emphasise establishing a correct, balanced position before introducing complex movements. Transitions are the cornerstone of early flatwork.",
+        safetyReminders: ["Check girth before mounting and again after 5 minutes","Ensure stirrups are the correct length before moving off"]
+      },
+      {
+        title: "Straight Lines and Corners",
+        duration: "45 minutes",
+        tags: ["Rhythm & straightness","Balance & position","Dressage fundamentals"],
+        goals: ["Ride accurate school figures","Maintain straightness on long sides","Introduce leg-yielding concept"],
+        warmup: { name: "Walk the Arena", duration: "8 min", description: "Walk the full perimeter, then quarter lines, then centre line. Focus on accurate turns and keeping the horse in front of the leg." },
+        mainExercises: [
+          { name: "Accuracy Drill: Markers", duration: "10 min", diagram: "serpentine", description: "Call out specific letters and ask riders to halt, transition, or circle exactly at each marker. Develops precision and spatial awareness.", coachingTips: ["Think of the marker as being under your inside heel","Prepare 2 horse-lengths before the marker"], commonMistakes: ["Beginning turns too early or late","Drifting on long sides away from the track"] },
+          { name: "Trot Quarter Lines", duration: "12 min", diagram: "half-pass", description: "Ride down the quarter line in trot, keeping the horse straight without the wall as a guide. Great for developing independent aids.", coachingTips: ["Both legs equal to keep the horse straight","Soft feel on both reins — no steering with one rein"], commonMistakes: ["Horse drifting toward the track/wall","Over-correcting with the rein"] },
+          { name: "Simple Leg Yield Introduction", duration: "10 min", diagram: "leg-yield-diagonal", description: "From the centre line at walk, gently push the horse sideways back toward the track using the inside leg at the girth. Just 3-4 steps sideways is the goal.", coachingTips: ["Think \'sideways and forward\', not just sideways","The movement should stay rhythmic — don\'t rush it"], commonMistakes: ["Too much inside rein pulling the head around","Losing forward momentum"] }
+        ],
+        cooldown: { name: "Long Rein Walk", duration: "5 min", description: "Walk large on a loose rein, reward generously. Ask rider to reflect on one thing they did well." },
+        bestPracticeNote: "The BHS training scale places rhythm and straightness as foundational elements. Accurate school figures are the most effective tool for developing both horse and rider.",
+        safetyReminders: ["Remind beginners to look up when navigating corners","Keep safe distance from other horses in a group lesson"]
+      },
+      {
+        title: "Walk-Trot Adjustability",
+        duration: "45 minutes",
+        tags: ["Adjustability & distances","Rhythm & straightness","Balance & position","Dressage fundamentals","Pace & tempo"],
+        goals: ["Feel the difference between a forward and a held-back trot","Begin understanding pace control","Use half-halts to rebalance before transitions"],
+        warmup: { name: "Active Walk on a Long Rein", duration: "8 min", description: "Walk with purpose around the arena, varying the pace — ask for 5 big marching steps, then 5 slower steps. Gets the rider thinking about controlling pace from the very start." },
+        mainExercises: [
+          { name: "Forward and Back in Trot", duration: "12 min", diagram: "serpentine", description: "On a 20m circle in trot, ask for 5 big forward strides (more energy, more ground cover) then 5 shorter, more contained strides. Alternate continuously. The horse should respond to the leg and seat without fuss.", coachingTips: ["More energy comes from the leg and following seat — not from flapping the reins","To shorten: sit a little taller and close the fingers, don\'t pull"], commonMistakes: ["Speeding up instead of lengthening","Pulling back on the reins to slow rather than using the seat"] },
+          { name: "Transitions Every 10m on the Long Side", duration: "12 min", diagram: "halt-walk-transitions", description: "Walk to trot to walk in quick succession down the long side — roughly every 10 metres. Keeps both horse and rider sharp and responsive. Count strides between transitions to stay consistent.", coachingTips: ["Prepare the downward transition before you need it","Each transition should feel smoother than the last"], commonMistakes: ["Losing rhythm between transitions","Taking too long to establish the new gait before asking again"] },
+          { name: "Trot Pole Spacing Awareness", duration: "12 min", diagram: "rising-trot-poles", description: "Ride a line of 3 poles. First approach normally. Then approach in a bigger trot (poles will feel closer together). Then in a shorter trot (poles feel further apart). Teaches feel for stride length.", coachingTips: ["Don\'t look down — feel what the horse is doing underneath you","Let the horse tell you when you have the right pace"], commonMistakes: ["Panicking and pulling before the poles","Kicking madly and losing balance on approach"] }
+        ],
+        cooldown: { name: "Stretchy Walk and Praise", duration: "5 min", description: "Long rein walk. Ask the rider: did you feel the difference in the trot? What did you use to make it bigger? This lesson plants the seed for all future adjustability work." },
+        bestPracticeNote: "The BHS Riding and Road Safety and Pony Club C Test both assess the ability to adjust pace within a gait — a fundamental skill before any jumping or dressage development begins.",
+        safetyReminders: ["Ensure poles are on a safe, even surface","Allow adequate spacing between horses if riding in a group"]
+      },
+      {
+        title: "Understanding Your Canter Lead",
+        duration: "50 minutes",
+        tags: ["Lead changes","Balance & position","Rhythm & straightness","Dressage fundamentals"],
+        goals: ["Identify which canter lead the horse is on","Ask correctly for left and right lead canter","Understand why the correct lead matters"],
+        warmup: { name: "Trot Circles and Transitions", duration: "10 min", description: "Trot on both reins on a 20m circle. Focus on sitting balanced and feeling the horse\'s rhythm before introducing canter." },
+        mainExercises: [
+          { name: "Identifying the Lead — Walk Exercise", duration: "10 min", diagram: "halt-walk-transitions", description: "At walk, ask the rider to watch the horse\'s inside shoulder as they turn a corner. Explain how in canter the inside foreleg leads — the shoulder that swings forward more is the leading leg. Practise identifying it at walk before canter.", coachingTips: ["Look down briefly just to learn — eyes up once you can feel it","Inside = the direction you\'re turning"], commonMistakes: ["Confusing inside and outside","Looking down for too long and losing balance"] },
+          { name: "Canter Depart on the Correct Lead", duration: "15 min", diagram: "spiral-circle", description: "On a 20m circle, ask for canter from trot. Inside leg at the girth, outside leg slides back, soft inside rein. After each depart, identify: correct lead or not? If wrong, trot, rebalance, try again — never correct with the lead mid-stride.", coachingTips: ["Set up the depart in the corner — the geometry helps","Sit tall and think canter before you apply the aid"], commonMistakes: ["Tipping forward to ask for canter","Collapsing inside hip, which pushes the horse onto the wrong lead"] },
+          { name: "Canter Both Reins, Confirm the Lead", duration: "12 min", diagram: "serpentine", description: "Canter a full circle on each rein. After each transition, rider must tell you which lead they\'re on before looking down. Progress to feeling it without looking at all.", coachingTips: ["On the correct lead, your inside hip will naturally swing forward more","Feel it, don\'t just look for it"], commonMistakes: ["Always needing to look down","Losing balance trying to observe the shoulder"] }
+        ],
+        cooldown: { name: "Free Walk on Both Reins", duration: "8 min", description: "Walk on a long rein on both reins. Recap: what are the two aids for a canter depart? Which shoulder leads on the left rein? Reinforce the learning verbally." },
+        bestPracticeNote: "Pony Club C Test requires riders to identify the canter lead and understand why it matters for balance and turns. BHS Stage 2 assessment includes correct canter departs on a named rein.",
+        safetyReminders: ["Only canter once the horse is forward and relaxed in trot","Beginner cantering should happen in an enclosed arena with good footing"]
+      }
+    ],
+    Jumping: [
+      {
+        title: "Poles on the Ground",
+        duration: "45 minutes",
+        tags: ["Balance & position","Rhythm & straightness"],
+        goals: ["Establish a balanced jumping position over poles","Maintain rhythm approaching and departing poles","Build confidence and straightness"],
+        warmup: { name: "Flatwork Warm-Up", duration: "10 min", description: "Walk and trot on both reins on a 20m circle. Focus on forward, rhythmic trot before introducing any poles." },
+        mainExercises: [
+          { name: "Single Ground Pole in Trot", duration: "10 min", diagram: "single-ground-pole", description: "Approach a single pole on the centre line in rising trot. Rider adopts a slight forward seat 3 strides before and maintains it for 3 strides after.", coachingTips: ["Fold from the hip, don\'t stand in the stirrups","Keep eyes up and looking beyond the pole"], commonMistakes: ["Looking down at the pole","Throwing the upper body too far forward"] },
+          { name: "Fan of Poles", duration: "12 min", diagram: "fan-poles", description: "Set 3-4 poles in a fan shape on a circle. Ride through in trot, finding the sweet spot in the middle of each pole. Teaches riders to stay on a curved line.", coachingTips: ["Inside leg keeps the circle consistent","Allow the horse to look and relax over the poles"], commonMistakes: ["Cutting the corner and riding the narrow end","Gripping up and stiffening on approach"] },
+          { name: "Line of 4 Trot Poles", duration: "10 min", diagram: "line-of-poles-xrail", description: "Set 4 poles at 1.3-1.4m apart for trot. Ride a straight approach, through the line, and straight departure. Gradually add a tiny cross-rail as the final element if confident.", coachingTips: ["Commit to a straight line 5 strides before the first pole","Soft hands — don\'t interfere with the mouth over the poles"], commonMistakes: ["Speeding up on approach out of excitement","Pulling on the mouth as the horse steps over"] }
+        ],
+        cooldown: { name: "Relaxed Trot and Walk", duration: "5 min", description: "Trot on a large circle then walk on a long rein. Lots of verbal praise — confidence-building is the priority at this stage." },
+        bestPracticeNote: "Pony Club and BHS both specify ground poles and cavaletti before any fences. Building confidence and correct position over poles is non-negotiable for safe jumping progress.",
+        safetyReminders: ["Helmets must meet current safety standards (PAS 015 or ASTM F1163)","Never jump alone — always have a ground person present"]
+      },
+      {
+        title: "First Cross-Rails",
+        duration: "50 minutes",
+        tags: ["Balance & position","Rhythm & straightness"],
+        goals: ["Ride confidently over a small cross-rail","Maintain forward rhythm on approach","Land and ride away in balance"],
+        warmup: { name: "Active Trot Warm-Up with Poles", duration: "10 min", description: "Warm up over 2-3 ground poles in trot to get both horse and rider focused and forward before introducing the cross-rail." },
+        mainExercises: [
+          { name: "Trot to Cross-Rail, Single Fence", duration: "12 min", diagram: "single-xrail", description: "Set a small cross-rail (centre no higher than 30cm). Approach in rising trot, adopt a light seat 3 strides out, land and ride large. Repeat on both reins.", coachingTips: ["Count strides aloud to keep a steady rhythm","Allow the horse to jump up to you — don\'t jump ahead of it"], commonMistakes: ["Getting left behind and catching the horse in the mouth","Jumping ahead and tipping onto the neck"] },
+          { name: "Placing Pole to Cross-Rail", duration: "12 min", diagram: "single-xrail", description: "Place a placing pole 2.7m before the cross-rail. This regulates the stride and teaches the rider to trust the setup. Approach in rising trot.", coachingTips: ["Soften the rein slightly in the last 2 strides","Land softly in the heel, not the toe"], commonMistakes: ["Interfering with the placing pole stride","Closing the hip angle too early before takeoff"] },
+          { name: "Two Cross-Rails on a Figure-8", duration: "12 min", diagram: "figure8-xrails", description: "Set two cross-rails on a figure-8. Rider trots one, circles, trots the other. Encourages straightness and rhythm on both reins.", coachingTips: ["Think about the approach to the NEXT fence as soon as you land","Circle should be at least 15-20m"], commonMistakes: ["Rushing between fences","Losing straightness on the approach"] }
+        ],
+        cooldown: { name: "Walk on a Long Rein", duration: "6 min", description: "Finish with a long relaxed walk. Discuss what went well and one thing to focus on next time." },
+        bestPracticeNote: "USEF and Pony Club recommend approaching first fences in trot to allow the rider to establish balance. Rushing to canter approaches too early is a common cause of lost confidence.",
+        safetyReminders: ["Check fence cups and poles are secure before starting","Ensure the landing surface is safe and free of holes"]
+      },
+      {
+        title: "Count Your Strides",
+        duration: "50 minutes",
+        tags: ["Adjustability & distances","Rhythm & straightness","Pace & tempo"],
+        goals: ["Begin counting strides between poles","Understand how pace affects where you meet a fence","Develop an ear for rhythm"],
+        warmup: { name: "Rhythm Warm-Up — Clapping Exercise", duration: "8 min", description: "Trot on a 20m circle. Ask the rider (or a helper on the ground) to clap a beat. The rider\'s posting should match the clap. Then change the tempo — rider adjusts the trot to match. A fun way to build rhythmic awareness before poles." },
+        mainExercises: [
+          { name: "Two Poles, Count the Strides Between", duration: "12 min", diagram: "related-distance-4", description: "Set two poles on a straight line with 4 canter strides between them (approx 16m). Trot over the first, count the trot strides to the second. How many? Now repeat in a bigger trot — does the number change? Teaches cause and effect of pace.", coachingTips: ["Count out loud — it keeps you breathing and focused","Don\'t guess: actually feel and count every stride"], commonMistakes: ["Losing count because they\'re thinking about too many things","Speeding up or slowing down mid-line rather than holding the pace"] },
+          { name: "Placing Pole Distances", duration: "12 min", diagram: "single-xrail", description: "Set a placing pole at 2.7m (trot) then at 3.5m (between trot and canter). Ride the same cross-rail with both distances and discuss the difference in feel. The closer pole makes the fence feel easier; the further one requires more commitment.", coachingTips: ["Trust the pole — it\'s placed there to help you","Feel how the horse\'s stride changes to meet the fence"], commonMistakes: ["Interfering when the placing pole feels \'wrong\'","Panicking when the distance feels long"] },
+          { name: "Canter Pole to Cross-Rail", duration: "12 min", diagram: "line-of-poles-xrail", description: "Set a canter pole at 5.5m before a cross-rail. Establish canter, ride over the pole, and jump the fence. The pole teaches the rider to hold canter rhythm rather than chasing or holding to the fence.", coachingTips: ["Maintain the same rhythm after the canter pole — don\'t do anything","Hands stay still and soft in the last 2 strides"], commonMistakes: ["Chasing after the canter pole and getting too fast","Pulling back and losing the rhythm entirely"] }
+        ],
+        cooldown: { name: "Walk and Reflection", duration: "6 min", description: "Long rein walk. Ask: what did you notice when your trot was bigger? What happened to the number of strides? This anchors the learning." },
+        bestPracticeNote: "Teaching riders to count strides is a cornerstone of USEF Hunter/Equitation coaching. It develops feel, focus, and the foundation for all future distance work.",
+        safetyReminders: ["Introduce canter poles only once the rider is balanced in canter","Always check poles are secure and won\'t roll unexpectedly"]
+      }
+    ]
+  },
+  Intermediate: {
+    Flat: [
+      {
+        title: "Transitions Within the Gait",
+        duration: "55 minutes",
+        tags: ["Adjustability & distances","Rhythm & straightness","Lead changes","Contact & collection","Dressage fundamentals","Pace & tempo"],
+        goals: ["Develop medium and working trot","Introduce canter-walk transitions","Improve responsiveness to half-halts"],
+        warmup: { name: "Progressive Warm-Up All Gaits", duration: "10 min", description: "Walk on a long rein, then working trot on both reins, then canter on both reins. Focus on rhythm and relaxation before asking for collection or extension." },
+        mainExercises: [
+          { name: "Working to Medium Trot on Long Sides", duration: "12 min", diagram: "medium-trot-diagonal", description: "On the long sides, push to a medium trot (more ground cover, not faster). Return to working trot at the corners. The half-halt before collecting is as important as the extension itself.", coachingTips: ["Drive with the seat, don\'t just kick","Half-halt 2 strides before corners to rebalance"], commonMistakes: ["Running into a faster, not longer, trot","Losing rhythm in the transition back"] },
+          { name: "Leg Yield on the Diagonal", duration: "12 min", diagram: "leg-yield-diagonal", description: "From the track, leg yield on the diagonal to X, then ride forward to the opposite marker. Horse should be parallel to the long side, crossing front and hind legs.", coachingTips: ["Slight flexion away from direction of travel","More leg than hand — the leg creates the movement"], commonMistakes: ["Haunches leading (too much inside rein)","Loss of forward energy during the yield"] },
+          { name: "Canter-Walk-Canter Transitions", duration: "12 min", diagram: "counter-canter", description: "On a 20m circle, practice direct canter to walk transitions and walk to canter. Develops engagement of the hindquarters and the rider\'s ability to use the seat independently.", coachingTips: ["Think \'sit and close the leg\' not \'pull to walk\'","Allow 2-3 walk strides before asking for canter again"], commonMistakes: ["Trotting in the downward transition","Horse falling onto the forehand in the canter-walk"] }
+        ],
+        cooldown: { name: "Stretchy Trot Circle", duration: "5 min", description: "Allow the horse to stretch long and low in trot on a 20m circle, then free walk on a long rein." },
+        bestPracticeNote: "According to the German Training Scale (widely adopted by BHS and FEI), impulsion and straightness must be established before collection can be correctly developed.",
+        safetyReminders: ["Warm up adequately before asking for collected work","Be aware of footing — collection work increases load on hindquarters"]
+      },
+      {
+        title: "Lateral Work and Suppleness",
+        duration: "55 minutes",
+        tags: ["Balance & position","Rhythm & straightness","Lead changes","Contact & collection","Dressage fundamentals"],
+        goals: ["Introduce shoulder-in","Improve bend and suppleness","Develop counter-canter balance"],
+        warmup: { name: "Spiral In and Out on a Circle", duration: "10 min", description: "Start on a 20m circle in trot. Gradually spiral in to 10m using the inside leg to outside rein, then leg yield back out to 20m. Excellent suppling exercise." },
+        mainExercises: [
+          { name: "Shoulder-In Introduction", duration: "15 min", diagram: "shoulder-in", description: "Begin in walk. On the long side, ask the horse to step onto the 3-track position: forehand off the track, haunches on the track, horse bent around inside leg. Introduce in trot once established in walk.", coachingTips: ["Think of it as a 10m circle that never quite completes","Inside leg at girth creates the bend AND the movement"], commonMistakes: ["Too much neck bend without body angle","Losing the angle after a few strides"] },
+          { name: "Spiral Circle for Suppleness", duration: "12 min", diagram: "spiral-circle", description: "On a 20m circle, spiral gradually in to 10m using inside leg to outside rein, then leg yield back out. Tests and develops the horse\'s acceptance of lateral aids.", coachingTips: ["Outside rein must receive the energy — don\'t just pull in with the inside","Keep a consistent rhythm throughout the exercise"], commonMistakes: ["Losing rhythm as the circle gets smaller","Horse tilting at the poll instead of bending through the body"] },
+          { name: "Counter-Canter Shallow Loops", duration: "10 min", diagram: "counter-canter", description: "Ride a shallow loop off the track in counter-canter (5m off track, returning to the track). Do not change lead. Tests balance and obedience without a flying change.", coachingTips: ["Support with the outside (leading) leg to maintain lead","Keep the horse\'s neck straight — don\'t overbend to the inside"], commonMistakes: ["Horse breaking to trot","Rider collapsing the inside hip"] }
+        ],
+        cooldown: { name: "Free Walk and Square Halts", duration: "5 min", description: "Long rein walk with several square halts. A good halt on a straight line confirms the suppleness work has carried through." },
+        bestPracticeNote: "Shoulder-in, developed by François Robichon de la Guérinière, remains the foundational lateral movement in classical and modern training systems including FEI dressage.",
+        safetyReminders: ["Lateral work can cause fatigue — watch for signs the horse is tiring","Introduce new movements in walk before trot"]
+      },
+      {
+        title: "Adjustability on a Circle and Diagonal",
+        duration: "55 minutes",
+        tags: ["Adjustability & distances","Rhythm & straightness","Contact & collection","Pace & tempo"],
+        goals: ["Ride working, medium and collected trot in a single session","Feel the half-halt as a rebalancing tool","Develop precision of pace on demand"],
+        warmup: { name: "Forward and Back in Walk", duration: "8 min", description: "Alternate between a big marching walk and a contained walk every 10 strides. Gets both horse and rider thinking about pace adjustment from the very start." },
+        mainExercises: [
+          { name: "Three Trots on a 20m Circle", duration: "15 min", diagram: "spiral-circle", description: "Label three gears: working (normal), forward (bigger, more ground cover), and collected (shorter, more uphill). Ride 4 strides of each in sequence around the circle: 4 working, 4 forward, 4 collected, repeat. Rider must use body, not just legs and reins.", coachingTips: ["The transition between gears should take 1 stride — practise making it crisp","For collected: close the fingers and sit — don\'t pull"], commonMistakes: ["Collected becoming slow and flat rather than uphill and active","Forward becoming fast and on the forehand"] },
+          { name: "Medium Trot on the Diagonal, Collect at X", duration: "12 min", diagram: "medium-trot-diagonal", description: "Ride medium trot from the corner onto the diagonal. At X, apply a clear half-halt and return to collected or working trot for the second half of the diagonal. This splits the movement in two and sharpens the half-halt response.", coachingTips: ["The half-halt at X is a conversation — not a haul","Medium: think \'fill the diagonal\'"], commonMistakes: ["Running through the half-halt at X","The medium trot looking no different to working trot"] },
+          { name: "Rein-Back to Forward Trot", duration: "10 min", diagram: "halt-walk-transitions", description: "Halt square on the centre line. Ask for 3-4 steps of rein-back. Then immediately push forward to trot without a walk step. The contrast activates the hindquarters and sharpens the horse\'s response to the forward aid — great for lazy or heavy horses.", coachingTips: ["Rein-back: both legs gently squeeze, both reins resist — don\'t pull backward","The trot forward should feel like a spring releasing"], commonMistakes: ["Horse crooked in the rein-back","Losing the square halt before asking for rein-back"] }
+        ],
+        cooldown: { name: "Stretchy Trot Both Reins", duration: "7 min", description: "Long and low stretch in trot, then a free walk on a long rein. A good stretch confirms the horse has been working through its back." },
+        bestPracticeNote: "The FEI and BHS both identify the ability to lengthen and shorten within a gait as a key progression marker. The rein-back to trot exercise is used at BHS Stage 3 and above as a test of engagement and forwardness.",
+        safetyReminders: ["Rein-back should never be forced — if the horse resists, check for pain or tension","Only attempt rein-back to trot once rein-back is confirmed in halt"]
+      },
+      {
+        title: "Flying Change Preparation",
+        duration: "55 minutes",
+        tags: ["Lead changes","Rhythm & straightness","Balance & position","Contact & collection","Dressage fundamentals"],
+        goals: ["Confirm counter-canter","Introduce the concept of a simple change","Begin feeling the moment for a flying change"],
+        warmup: { name: "All-Gaits Warm-Up with Transitions", duration: "12 min", description: "Walk, trot, canter on both reins. Include several transitions within the trot to get the horse listening and in front of the leg before lateral and change work." },
+        mainExercises: [
+          { name: "Counter-Canter on a 20m Circle", duration: "12 min", diagram: "counter-canter", description: "Establish true canter on the right rein. Then ask for counter-canter on the left rein (right lead going left). Hold it for a full circle. This confirms the horse\'s balance and obedience before you introduce changes.", coachingTips: ["Maintain the true bend of the lead — don\'t try to bend into the circle","If the horse breaks, quietly re-establish and try again — no drama"], commonMistakes: ["Horse swapping leads behind to relieve the difficulty","Rider collapsing and losing the outside supporting leg"] },
+          { name: "Simple Change Through Walk", duration: "15 min", diagram: "figure8-xrails", description: "On a figure-8, ride canter on one circle, trot or walk 2-3 strides at X (the crossover), then pick up the new lead on the other circle. The quality of the simple change — clear, calm, prompt — is more important than speed.", coachingTips: ["Walk or trot must be active — a lazy walk won\'t produce a sharp depart","The new depart: outside leg back, sit, ask — all in one quiet movement"], commonMistakes: ["Too many walk or trot strides before the new canter depart","New lead being wrong because the depart preparation was rushed"] },
+          { name: "Feeling the Moment: Counter-Canter to True", duration: "10 min", diagram: "serpentine", description: "Ride a 3-loop serpentine in counter-canter. At the change of rein, allow — don\'t force — the horse to swap leads naturally if it offers. If it does, reward immediately. This is the earliest stage of flying change preparation.", coachingTips: ["Think of the change as something you allow, not something you grab for","If no change comes, that\'s fine — repeat the simple change exercise"], commonMistakes: ["Forcing the change with too much leg and losing balance","Getting tense, which the horse mirrors immediately"] }
+        ],
+        cooldown: { name: "Long Rein Walk and Stretchy Trot", duration: "8 min", description: "Walk on a long rein, then a stretchy trot circle. Finish on a calm, forward note — change work is mentally demanding for both horse and rider." },
+        bestPracticeNote: "BHS Stage 3 and USEF Prix St. Georges training both emphasise that flying changes should never be rushed. Counter-canter quality and correct simple changes are the only foundation that produces clean, straight flying changes.",
+        safetyReminders: ["Don\'t attempt flying changes until simple changes are completely confirmed","Horses that are tense or behind the leg should not be asked for change work"]
+      }
+    ],
+    Jumping: [
+      {
+        title: "Building Related Distances",
+        duration: "55 minutes",
+        tags: ["Adjustability & distances","Rhythm & straightness","Pace & tempo"],
+        goals: ["Ride a two-fence related distance accurately","Develop an adjustable canter","Count strides between fences"],
+        warmup: { name: "Canter Poles and Single Fence", duration: "12 min", description: "Warm up over canter poles set at 3m apart, then a single upright. Focus on establishing a rhythmic, balanced canter before introducing related distances." },
+        mainExercises: [
+          { name: "4-Stride Related Distance", duration: "12 min", diagram: "related-distance-4", description: "Set two fences (60-70cm) on 16-17m distance (4 normal strides). Rider focuses on landing, establishing the canter immediately, counting 4 strides, and jumping out.", coachingTips: ["Count out loud: 1-2-3-4 fence","If you land and feel wrong, more leg — never pull"], commonMistakes: ["Getting deep to the second fence from losing rhythm","Pulling back after the first fence and losing impulsion"] },
+          { name: "Adjustability: Long and Short Strides", duration: "12 min", diagram: "related-distance-4", description: "Over the same two fences, first ride it in 5 strides (shorten), then in 4 (normal), then in 3 (lengthen). Start with just the 4 and 5 strides before attempting 3.", coachingTips: ["For the short option: half-halt after landing, sit quietly","For the long option: close the leg and allow with the hand"], commonMistakes: ["Pulling hard to add a stride instead of half-halting","Chasing to leave a stride out rather than riding forward"] },
+          { name: "Mini Course: 3 Fences", duration: "12 min", diagram: "jump-off-course", description: "Add a third fence to create a simple 3-fence course. Rider must plan the line, count strides in the related distance, and maintain rhythm throughout. Walk the course on foot first.", coachingTips: ["Land and immediately look to the next fence","Keep breathing — tension travels straight down the reins"], commonMistakes: ["Getting faster and flatter as the course continues","Forgetting to ride the corners between fences"] }
+        ],
+        cooldown: { name: "Walk on a Long Rein", duration: "7 min", description: "Walk the full arena on a loose rein. Debrief: ask the rider what they felt, what they\'d change, what went well." },
+        bestPracticeNote: "USEF and Pony Club both emphasise the development of an adjustable, rhythmic canter as the most important skill for safe and effective course riding.",
+        safetyReminders: ["Walk all related distances on foot before riding them","Ensure fences are on a safe surface and cups are appropriate"]
+      },
+      {
+        title: "Gymnastics and Grid Work",
+        duration: "55 minutes",
+        tags: ["Balance & position","Adjustability & distances","Rhythm & straightness"],
+        goals: ["Improve the horse\'s athleticism through grid work","Develop rider\'s release and balance","Build confidence through repetition"],
+        warmup: { name: "Flatwork and Single Pole", duration: "10 min", description: "Trot and canter warm-up on both reins. Approach a single ground pole in canter to get both horse and rider focused before building the grid." },
+        mainExercises: [
+          { name: "Bounce Grid (Ground Poles)", duration: "10 min", diagram: "bounce-grid", description: "Set 4 ground poles at bounce distance (3-3.3m apart) in a straight line. Trot in, allow the horse to step through. Sets up rhythm before adding cross-rails.", coachingTips: ["Stay in a light seat throughout","Allow the horse to find its feet — don\'t interfere"], commonMistakes: ["Gripping up and stiffening when the horse lands","Looking down into the grid"] },
+          { name: "Cross-Rail Bounce to Upright", duration: "15 min", diagram: "full-gymnastic", description: "Replace first 2 ground poles with small cross-rails (bounce distance). Add a placing pole 5.5m after the last bounce to a small upright. Build up element by element.", coachingTips: ["Count the rhythm of footfalls through the grid","Elasticity through the elbow — following hands are essential"], commonMistakes: ["Rider being \'left behind\' in the bounce","Horse rushing when cross-rails are added"] },
+          { name: "Full Grid: Bounce, One Stride, Two Stride", duration: "15 min", diagram: "full-gymnastic", description: "Set a full gymnastic: cross-rail bounce, 5.5m to an upright (1 stride), 10m to an oxer (2 strides). Canter approach. Develops power, adjustability, and confidence.", coachingTips: ["Stay soft in the hip and follow with the seat","The grid does the work — trust it and don\'t interfere"], commonMistakes: ["Jumping ahead at the oxer","Pulling on landing from the final element"] }
+        ],
+        cooldown: { name: "Easy Canter and Long Walk", duration: "5 min", description: "One easy canter lap on each rein, then walk on a long rein. Grids are tiring — give the horse time to recover and relax." },
+        bestPracticeNote: "Grid work is endorsed by George Morris and Bert de Nemethy as the most effective method for developing horse and rider jumping technique. BHS Stage 3 and 4 syllabi include gymnastic jumping as a core component.",
+        safetyReminders: ["Build grids one element at a time — never jump the full grid cold","Have a ground person to reset poles and observe the horse\'s way of going"]
+      },
+      {
+        title: "Seeing a Distance — Developing the Eye",
+        duration: "55 minutes",
+        tags: ["Adjustability & distances","Rhythm & straightness","Pace & tempo"],
+        goals: ["Begin to see a stride to a fence","Understand how canter rhythm affects the distance","Make adjustments in the last 3 strides confidently"],
+        warmup: { name: "Canter Rhythm Exercise", duration: "10 min", description: "Canter on a 20m circle. Every quarter circle, give a brief half-halt and re-establish. You want a canter that feels like a rocking horse — consistent, bouncy, uphill. This is your jumping canter." },
+        mainExercises: [
+          { name: "Counting Back from the Fence", duration: "12 min", diagram: "single-xrail", description: "Approach a single upright (70-80cm) in canter. Count 5-4-3-2-1 as you approach. Initially just counting keeps the rider\'s mind focused. Gradually start identifying at \'5\' whether the stride feels forward, short, or just right — and whether to hold or add leg.", coachingTips: ["If you can\'t count calmly, your canter is too fast","At \'3\': commit. Whatever you have, ride it positively"], commonMistakes: ["Panicking at \'3\' and either grabbing or kicking wildly","Counting but not actually feeling the stride underneath them"] },
+          { name: "Long Distance vs Short Distance — Feel the Difference", duration: "15 min", diagram: "related-distance-4", description: "Set a single fence. First approach from a bigger, more forward canter — note where the horse takes off (likely a stride out, long). Then approach from a shorter, rounder canter — note the takeoff spot (closer, steeper). Neither is wrong: the lesson is to feel the difference.", coachingTips: ["Don\'t tell the rider where they\'re going — let them feel and report back","Long distance: horse flattens slightly. Short: horse jumps more up than out"], commonMistakes: ["Rider not noticing any difference (needs more rides before this lesson)","Chasing for the long distance and arriving on a flat stride"] },
+          { name: "Add or Leave — Decision Fence", duration: "15 min", diagram: "related-distance-4", description: "Set a related 4-stride distance. First round: just ride it. Second round: you call \'add\' or \'leave\' as they land over the first fence — they must adjust accordingly. Develops reactive adjustability rather than pre-planned riding.", coachingTips: ["Call the decision clearly and early — at least 2 strides after landing","Reward any attempt to adjust, even if imperfect"], commonMistakes: ["Rider ignoring the call because they\'re already committed to the wrong stride","Adjustment so dramatic it ruins the approach to fence 2"] }
+        ],
+        cooldown: { name: "Walk on a Long Rein and Debrief", duration: "8 min", description: "Walk, loosen girth, debrief. Key question: at what point in the approach did you know you had a good stride? Getting earlier and earlier with that feeling is the lifelong goal." },
+        bestPracticeNote: "USEF equitation coaches including George Morris describe \'seeing a stride\' as a skill developed through feel and repetition, not a talent you either have or don\'t. The consistent jumping canter is always the starting point.",
+        safetyReminders: ["Never push a rider to jump a bigger fence to \'find the distance\' — keep the fence inviting","Ground person essential for calling add/leave without distracting the rider\'s position"]
+      },
+      {
+        title: "Landing on the Right Lead",
+        duration: "55 minutes",
+        tags: ["Lead changes","Adjustability & distances","Rhythm & straightness"],
+        goals: ["Land consistently on the correct canter lead","Use fences as transition points","Begin planning lead for the next fence"],
+        warmup: { name: "Canter Transitions Both Reins", duration: "10 min", description: "Confirm canter departs on both reins before jumping. Rider must name the lead correctly each time before proceeding. Establishes the mental habit of thinking about leads." },
+        mainExercises: [
+          { name: "Single Fence — Land and Name the Lead", duration: "12 min", diagram: "single-xrail", description: "Jump a single cross-rail or small upright. After landing, rider must identify the lead before circling away. Don\'t tell them — wait. They must feel it. Repeat on both reins until they can identify it immediately on landing.", coachingTips: ["Inside hip will swing forward on the correct lead — feel it","If wrong lead, don\'t panic — quietly trot and pick up the right one"], commonMistakes: ["Looking down to check rather than feeling","Not noticing until several strides after landing"] },
+          { name: "Cross-Rail to Corner — Lead Dictates the Turn", duration: "15 min", diagram: "figure8-xrails", description: "Set a cross-rail with a placing pole. After the fence, turn right if on the right lead, left if on the left lead. The rider must feel the lead within 2 strides and make the correct turn. A wrong lead means a missed turn — immediate feedback.", coachingTips: ["Think about the lead before you even take off — set up the depart in the air","Inside leg slightly longer as you land encourages the horse to land on that lead"], commonMistakes: ["Making the correct turn by luck, not by feel","Not looking up and committing to a turn direction immediately"] },
+          { name: "Figure-8 Fences with Simple Changes", duration: "15 min", diagram: "figure8-xrails", description: "Set two fences on a figure-8. Jump fence 1, land, trot 3-4 strides through the centre, pick up the opposite lead, jump fence 2. The simple change must be deliberate and controlled — not just flopping from one lead to another.", coachingTips: ["The trot steps in the centre should be active and forward — not a collapse","Set up the new lead canter before the fence, not after it"], commonMistakes: ["Too many trot strides, losing impulsion before fence 2","Picking up the wrong lead for fence 2 and not noticing"] }
+        ],
+        cooldown: { name: "Easy Trot and Walk", duration: "8 min", description: "Finish with a relaxed trot on a large circle and a long rein walk. Recap: which lead do you want over a fence going right? Why does it matter? Cement the understanding." },
+        bestPracticeNote: "USEF Hunter and Equitation judges assess landing on the correct lead as a fundamental skill. Landing on the wrong lead and not correcting is one of the most common hunter course faults at all levels below Grand Prix.",
+        safetyReminders: ["Riders who are not confirmed on canter leads on the flat should not yet attempt to identify them over fences","Keep the fences small and inviting — the focus is on leads, not jumping"]
+      }
+    ]
+  },
+  Advanced: {
+    Flat: [
+      {
+        title: "Collection, Extension and Flying Changes",
+        duration: "60 minutes",
+        tags: ["Lead changes","Adjustability & distances","Rhythm & straightness","Contact & collection","Dressage fundamentals","Pace & tempo"],
+        goals: ["Develop medium and extended trot","Refine flying changes","Work towards half-pass"],
+        warmup: { name: "Full Warm-Up Including Lateral Work", duration: "15 min", description: "Walk on long rein, shoulder-in on both reins in trot, counter-canter. Allow at least 15 minutes before any collected or extended work." },
+        mainExercises: [
+          { name: "Collected to Extended Trot on the Diagonal", duration: "15 min", diagram: "medium-trot-diagonal", description: "From collected trot at the corner, develop medium or extended trot across the diagonal. Half-halt at X to rebalance, collect again by the opposite corner. Quality of the transition is the exercise.", coachingTips: ["The energy comes from the hindquarters, not from running","The half-halt before collecting must be invisible"], commonMistakes: ["Losing hindquarters engagement in the extension","Abrupt downward transition that falls onto the forehand"] },
+          { name: "Half-Pass in Trot and Canter", duration: "15 min", diagram: "half-pass", description: "From shoulder-in on the long side, develop half-pass across the diagonal. Horse should be parallel to the long side, bent in direction of travel, crossing both front and back legs.", coachingTips: ["Outside rein controls the pace and angle","Inside leg at the girth maintains bend and impulsion"], commonMistakes: ["Haunches trailing (quarters leading)","Loss of collection and rhythm during the movement"] },
+          { name: "Flying Changes on a Figure-8", duration: "12 min", diagram: "figure8-xrails", description: "Canter a large figure-8 with a single flying change through X. Focus on straightness in the change — no jump to the side or late behind. Build to every-stride changes only if the horse is confirmed.", coachingTips: ["Prepare with a half-halt 2 strides before","The aid is quick and light — the preparation does the work"], commonMistakes: ["Asking too late and the change is rushed","Horse swinging haunches to avoid being straight in the change"] }
+        ],
+        cooldown: { name: "Long and Low Canter and Stretch Trot", duration: "8 min", description: "Allow the horse to stretch long and low in both trot and canter. A horse that stretches willingly has been working correctly through its back. Finish with a square halt on the centre line." },
+        bestPracticeNote: "FEI judging criteria state that collection must show increased engagement of the hindquarters with lightness of the forehand. Extension is a product of collection — not speed.",
+        safetyReminders: ["Collected work places high demand on joints — adequate warm-up is essential","Watch for signs of back or hock discomfort if a horse resists collection"]
+      },
+      {
+        title: "Pirouette Preparation and Tempi Changes",
+        duration: "60 minutes",
+        tags: ["Lead changes","Balance & position","Rhythm & straightness","Contact & collection","Dressage fundamentals"],
+        goals: ["Develop canter voltes toward pirouette","Ride confirmed flying changes","Refine invisibility of aids"],
+        warmup: { name: "Lateral Work Warm-Up", duration: "15 min", description: "Shoulder-in, travers, and renvers on both reins in trot. Counter-canter on a 20m circle. Full warm-up is essential before any advanced collected work." },
+        mainExercises: [
+          { name: "Collected Canter Voltes", duration: "12 min", diagram: "spiral-circle", description: "Ride 8m voltes in canter at each corner of the arena, maintaining a pure 3-beat rhythm and uphill balance. The volte tests and develops engagement without requiring a pirouette directly.", coachingTips: ["Outside rein controls — don\'t pull the horse around with the inside","Sit to the inside, weight into inside stirrup subtly"], commonMistakes: ["Horse losing the 3-beat rhythm, becoming 4-beat","Too much neck bend, not enough body control"] },
+          { name: "Spiral to Working Pirouette", duration: "15 min", diagram: "spiral-circle", description: "From a collected canter on a 10m circle, spiral gradually smaller while maintaining collection. Do not attempt a full pirouette unless confirmed — the quality of the approach is the exercise.", coachingTips: ["Rhythm must stay pure throughout — quality over size","If collection fails, ride out to a larger circle and re-establish"], commonMistakes: ["Pulling the horse around causing loss of collection","Horse stopping rather than stepping under in the pirouette"] },
+          { name: "Tempi Changes on a Diagonal", duration: "12 min", diagram: "medium-trot-diagonal", description: "Ride a series of flying changes across the diagonal — 4-time, then 3-time. Each change should be straight, expressive, and in front of the leg.", coachingTips: ["Each change is a single flying change — train each one individually first","Straightness is everything — any crookedness must be corrected immediately"], commonMistakes: ["Horse anticipating and changing early","Losing quality and rhythm as the changes continue"] }
+        ],
+        cooldown: { name: "Long Rein Walk and Stretch", duration: "8 min", description: "Finish with a long stretching walk, allowing the horse to completely relax. Advanced work is demanding — the cooldown is as important as the warm-up." },
+        bestPracticeNote: "The FEI and classical masters including Nuno Oliveira emphasise that advanced movements should appear effortless. If force or tension is visible, the foundation work needs revisiting.",
+        safetyReminders: ["Advanced horses require regular veterinary maintenance — checks of hocks, back, and teeth","Never force collection — resistance is always a signal to revisit preparation"]
+      },
+      {
+        title: "Comprehensive Adjustability Test",
+        duration: "60 minutes",
+        tags: ["Adjustability & distances","Rhythm & straightness","Lead changes","Contact & collection","Dressage fundamentals","Pace & tempo"],
+        goals: ["Ride all four trot variants in a single test","Master the half-halt as an invisible tool","Develop rider\'s feel for when the horse is truly \'adjustable\'"],
+        warmup: { name: "Full Lateral and Gait Warm-Up", duration: "15 min", description: "Shoulder-in, leg yield, and spiral circles on both reins in trot. Then canter on both reins with transitions. A fully supple horse is required before asking for fine-tuned adjustability." },
+        mainExercises: [
+          { name: "Four Trots in One Loop", duration: "15 min", diagram: "medium-trot-diagonal", description: "On a 20m circle, ride: 6 strides collected, 6 strides working, 6 strides medium, 6 strides extended. Then reverse the sequence. Each transition must happen in one stride and the rhythm must remain pure throughout. This is a highly demanding exercise — the horse must be genuinely on the aids.", coachingTips: ["The extended trot should still be rhythmic — not running","Think of each gear change as a thought, not an action — the horse should anticipate your intention"], commonMistakes: ["Extended becoming fast instead of long","Collected becoming slow and dead instead of active and uphill"] },
+          { name: "Half-Halt Precision Test", duration: "15 min", diagram: "shoulder-in", description: "Ride medium trot on the long side. At each letter, apply a half-halt — just one clear half-halt — and observe the effect. Does the horse rebalance in one stride? Two? Not at all? This exercise makes visible how refined the half-halt has become and where further development is needed.", coachingTips: ["A true half-halt is invisible to the observer — just a momentary closing of the seat and hand","If you need 3 half-halts, the horse is not yet confirmed — return to transitions"], commonMistakes: ["Half-halt becoming a pull","Not being honest about whether the horse actually responded"] },
+          { name: "Lengthening and Collecting in Canter", duration: "12 min", diagram: "counter-canter", description: "On the long side, ride 4 strides of collected canter, then 4 strides of medium/extended canter. Repeat. Then do the same in counter-canter. Counter-canter medium is a significant challenge — only attempt if collection is confirmed in true canter.", coachingTips: ["In the medium canter, allow the horse\'s neck to reach slightly — don\'t restrict","In the collection, the horse should feel lighter in the hand, not heavier"], commonMistakes: ["Medium canter becoming unbalanced and on the forehand","Collection being achieved by pulling, not by engagement"] }
+        ],
+        cooldown: { name: "Long and Low Both Gaits", duration: "8 min", description: "Extended walk, then long and low trot on a large circle. A horse that stretches willingly has worked correctly. Finish with a square halt." },
+        bestPracticeNote: "FEI Grand Prix tests include transitions between all trot and canter variants within a single movement. The German Training Scale identifies Durchlässigkeit (throughness) — the horse\'s full acceptance of the aid from leg to hand — as the ultimate goal of all training.",
+        safetyReminders: ["Extended paces at advanced level require excellent footing — check the surface before asking","Monitor the horse\'s breathing and sweat — advanced flat work is aerobically demanding"]
+      }
+    ],
+    Jumping: [
+      {
+        title: "Technical Course Riding",
+        duration: "60 minutes",
+        tags: ["Adjustability & distances","Rhythm & straightness","Lead changes","Pace & tempo"],
+        goals: ["Ride a related distance in a set number of strides","Jump a technical combination accurately","Develop a plan and ride it"],
+        warmup: { name: "Canter Work and Single Fences", duration: "12 min", description: "Active canter warm-up on both reins with transitions. Jump 2-3 single fences at course height, focusing on rhythm, straightness, and a positive canter off the ground." },
+        mainExercises: [
+          { name: "Skinny and Accuracy Fences", duration: "15 min", diagram: "skinny-fence", description: "Set a narrow fence (maximum 1m wide) requiring precise riding. Approach from both directions. Accuracy and commitment are essential.", coachingTips: ["Lock on early — look at the centre of the fence from 10 strides out","Any wavering in the last 3 strides becomes a run-out"], commonMistakes: ["Looking down at the fence instead of through it","Wavering in the approach and ending up off-centre"] },
+          { name: "Combination with a Tight Turn", duration: "15 min", diagram: "combination-turn", description: "Set a double (1 or 2 strides) followed by a tight turn to a single fence. Rider must land, ride the combination, and immediately plan and execute the turn.", coachingTips: ["Plan the turn before you jump in","Land on the correct canter lead or execute a flying change immediately"], commonMistakes: ["Landing and thinking — by then it\'s too late","Not using enough canter after the combination to make the turn"] },
+          { name: "Full Course with a Plan", duration: "15 min", diagram: "jump-off-course", description: "Ride a full 8-10 fence course at 90-100cm+. Walk it on foot, identify the technical questions, decide on strides in related distances, and ride the plan.", coachingTips: ["Ride to your plan — if one fence goes wrong, reset mentally and continue","The canter in the air is as important as the canter on the ground"], commonMistakes: ["Abandoning the plan after the first imperfect fence","Getting faster and flatter as adrenaline builds"] }
+        ],
+        cooldown: { name: "Long Rein Walk and Debrief", duration: "8 min", description: "Thorough walk cooldown. Video review if available. Debrief focused on decision-making, not just technical faults." },
+        bestPracticeNote: "Top trainers including McLain Ward consistently cite the quality of the canter — not the jump — as the determining factor at the highest levels. USEF guidelines reinforce that adjustability is the mark of an educated jumping combination.",
+        safetyReminders: ["Walk the course thoroughly on foot before riding","Ensure all fences are secure and cups are appropriately sized"]
+      },
+      {
+        title: "Speed, Lines and Competition Prep",
+        duration: "60 minutes",
+        tags: ["Adjustability & distances","Lead changes","Rhythm & straightness","Pace & tempo"],
+        goals: ["Find efficient lines between fences","Develop horse\'s scope and carefulness","Simulate competition pressure"],
+        warmup: { name: "Gymnastic Grid Warm-Up", duration: "12 min", description: "Set a simple 3-element gymnastic at a comfortable height. Warms up the horse\'s back, hocks, and focus before course work." },
+        mainExercises: [
+          { name: "Inside Turns and Broken Lines", duration: "15 min", diagram: "jump-off-course", description: "Set 3 fences and ride them using inside turns rather than going large. Find the most direct, rideable line. Time the round. Then repeat using the track. Compare times and feel.", coachingTips: ["An inside turn must be set up early — committed to at least 5 strides before","A tight turn that delivers a bad stride costs more time than the shortcut gained"], commonMistakes: ["Pulling the horse onto an inside turn too late","Sacrificing stride quality for the shorter line"] },
+          { name: "Oxer Height and Width Challenge", duration: "15 min", diagram: "full-gymnastic", description: "Gradually widen and raise an oxer over several attempts. Focus on developing scope and encouraging the horse to use its back and close its knees. Rider allows with a generous release.", coachingTips: ["The bigger the fence, the more important the quality of the canter","Generous release — don\'t restrict the horse\'s neck at maximum effort"], commonMistakes: ["Getting nervous and chipping in deep to a wide oxer","Pulling on the mouth in the air over a large fence"] },
+          { name: "Timed Jump-Off Course", duration: "15 min", diagram: "jump-off-course", description: "Set a 6-fence jump-off track with tight turns and efficient lines. First round for the plan, second round for time. Simulate competition pressure.", coachingTips: ["Going clear is always faster than having poles down","Know your horse — what can it recover from, what does it need time for"], commonMistakes: ["Over-riding and losing rhythm trying to go fast","Not trusting the horse and interfering at the last second"] }
+        ],
+        cooldown: { name: "Walk and Leg Care", duration: "10 min", description: "After demanding work, a proper cooldown is essential. Long rein walk, loosen the girth gradually, allow the horse to fully relax." },
+        bestPracticeNote: "FEI Level 4 coaching materials and top course designers emphasise that riders who understand lines and turns consistently out-perform technically equal riders in competition. Efficiency of line is the defining skill of the advanced show jumper.",
+        safetyReminders: ["Raise and widen fences gradually — never make a big jump without building to it","Check all cups and poles are secure before any course work at height"]
+      },
+      {
+        title: "Stride Control: Adding and Leaving Out",
+        duration: "60 minutes",
+        tags: ["Adjustability & distances","Rhythm & straightness","Pace & tempo"],
+        goals: ["Confidently add or leave out strides on command","Develop feel for the horse\'s stride length at speed","Maintain quality of jump when adjusting"],
+        warmup: { name: "Adjustable Canter Exercise", duration: "12 min", description: "On a 20m circle, ride 4 strides of working canter, then 4 strides of lengthened, then 4 strides of collected. Repeat until the transitions feel effortless and the horse is genuinely adjustable before any fences are introduced." },
+        mainExercises: [
+          { name: "5-Stride to 4-Stride Line", duration: "15 min", diagram: "related-distance-4", description: "Set a two-fence line on 20m (5 normal strides). Ride it first in 5. Then ask for it in 4 by landing and immediately lengthening the canter — not chasing, but opening the stride. The quality of the jump out must not be sacrificed.", coachingTips: ["To go from 5 to 4: close the leg firmly on landing and allow with the hand","You should feel the stride open under you — not see the fence rushing toward you"], commonMistakes: ["Getting flat and long to fence 2 by going too fast rather than genuinely lengthening","Leaving too late — the decision must be made by stride 2"] },
+          { name: "4-Stride to 5-Stride Line (Adding)", duration: "15 min", diagram: "related-distance-4", description: "Same line, now ridden in 5 strides from a 4-stride setup. Apply a half-halt on landing, sit quietly, and allow the horse to come back to a shorter stride. The fence must still be jumped correctly — adding can\'t become chipping.", coachingTips: ["Half-halt: close the seat and hand for one stride immediately on landing","If it still feels long approaching fence 2 — add leg, never pull"], commonMistakes: ["Pulling too much and arriving on a dead, flat stride","Losing the rhythm entirely trying to add the stride"] },
+          { name: "Coach Calls the Option", duration: "15 min", diagram: "jump-off-course", description: "Set a 3-fence course with one related distance. Rider jumps the course but the coach calls \'add\' or \'leave\' for the related distance only after the rider lands over fence 1. The rider must react and adjust mid-course without losing the plan for fence 3.", coachingTips: ["Hear the call, breathe, adjust — don\'t panic","Fence 3 must be ridden to your original plan regardless of how the distance went"], commonMistakes: ["Forgetting fence 3 entirely because of the adjustment","Over-reacting to the call and making a dramatic change that ruins fence 2"] }
+        ],
+        cooldown: { name: "Easy Single Fence and Long Walk", duration: "8 min", description: "Finish with one easy, flowing jump — let the horse and rider end on a confidence-building stride. Then walk on a long rein. Debrief on which adjustment felt more natural and why." },
+        bestPracticeNote: "The ability to add or leave out strides in a related distance is tested in USEF Equitation Finals, FEI Young Rider tests, and all professional jump-off situations. It is the clearest demonstration of an adjustable, educated horse and rider.",
+        safetyReminders: ["Never sacrifice fence quality for the stride — a safe jump matters more than the correct number","Reduce fence height if the adjustability work becomes tense or rushed"]
+      },
+      {
+        title: "Flying Changes Over Fences and on Course",
+        duration: "60 minutes",
+        tags: ["Lead changes","Adjustability & distances","Rhythm & straightness"],
+        goals: ["Execute flying changes immediately on landing","Plan lead changes between fences on course","Develop automatic lead awareness at speed"],
+        warmup: { name: "Flying Changes on the Flat", duration: "12 min", description: "Confirm flying changes on the flat before introducing them over fences. Ride a figure-8 with a change through X. Changes must be clean, straight, and prompt. Do not proceed to jumping until changes are confirmed on the flat in this session." },
+        mainExercises: [
+          { name: "Land and Change — Single Fence", duration: "12 min", diagram: "single-xrail", description: "Jump a single fence on the right rein, land, and immediately execute a flying change to the left lead within 2 strides. Circle left. Then jump the fence on the left rein and change to right. The change should feel like part of the landing, not an afterthought.", coachingTips: ["Think of the change before you take off — set it up in the air","Outside leg back, sit, ask — all in one movement as you land"], commonMistakes: ["Change being late (behind first) because the aid was slow","Pulling on the inside rein to force the change instead of using the leg"] },
+          { name: "Figure-8 Fences with Flying Changes", duration: "15 min", diagram: "figure8-xrails", description: "Set two fences on a figure-8. Jump fence 1, fly change within 2 strides, arc around, jump fence 2, fly change again. No simple changes — flying changes only. The turns reveal whether the change is genuinely clean: a crooked change will send the horse off the correct arc.", coachingTips: ["Land, change, look to the next fence — in that order and that quickly","If the change doesn\'t come: circle, simple change, approach again — never fight through it"], commonMistakes: ["Change coming late and disrupting the turn to fence 2","Horse getting tense and swapping behind but not in front (late behind)"] },
+          { name: "Full Course: Lead Plan Required", duration: "18 min", diagram: "jump-off-course", description: "Walk the course and for every fence, identify which lead you need to land on and where you need the lead change. Write it out if needed. Then ride the course executing every planned change. Debrief: were all changes clean? Were any unnecessary?", coachingTips: ["A clean wrong-lead change followed by a correct simple change is better than a crooked flying change","Know before you jump which turn requires the change and plan accordingly"], commonMistakes: ["Landing on the wrong lead and not noticing until the turn is already compromised","Planning changes where they\'re not needed and over-complicating the course"] }
+        ],
+        cooldown: { name: "Walking the Course and Cooling Down", duration: "8 min", description: "Literally walk the horse around the course on a long rein tracing the track you just jumped. A great visual debrief — and excellent cooling down for both horse and rider." },
+        bestPracticeNote: "USEF Hunter and Jumper courses are designed requiring flying changes at specific points. BHS Stage 5 and BHSI assessments include course analysis with planned lead changes as a coaching competency. Automatic lead awareness is the hallmark of an advanced combination.",
+        safetyReminders: ["Only attempt flying changes over fences once confirmed on the flat and in the simple-change exercise","If a horse is tense or resistant to changes, stop and return to flat work — never force a change at a fence"]
+      }
+    ]
+  }
+};
+
+
+const LEVELS = ["Beginner","Intermediate","Advanced"];
+const TYPES  = ["Flat","Jumping"];
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let currentLevel = "Beginner";
+let currentType  = "Flat";
+let activeTags   = [];
+let currentLesson = null;
+let savedLessons = [];
+let usedIds = {};
+let savedOpen = false;
+
+// ── DIAGRAMS (SVG strings) ────────────────────────────────────────────────────
+function svgArena(w, h, inner) {
+  return `<div class="diagram-label">Arena diagram</div>
+    <svg class="arena-diagram" viewBox="0 0 ${w} ${h}">
+      <rect x="10" y="10" width="${w-20}" height="${h-20}" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="4,3"/>
+      ${inner}
+    </svg>`;
+}
+function svgArrow(pts, color) {
+  color = color || "#388e3c";
+  const d = pts.map((p,i)=>(i===0?"M ":"L ")+p[0]+" "+p[1]).join(" ");
+  const last = pts[pts.length-1], prev = pts[pts.length-2];
+  const angle = Math.atan2(last[1]-prev[1], last[0]-prev[0])*180/Math.PI;
+  return `<path d="${d}" fill="none" stroke="${color}" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.7"/>
+    <polygon points="0,-4 8,0 0,4" fill="${color}" opacity="0.8" transform="translate(${last[0]},${last[1]}) rotate(${angle})"/>`;
+}
+function svgPole(x1,y1,x2,y2,color,thick) {
+  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color||"#8b6914"}" stroke-width="${thick?5:3}" stroke-linecap="round"/>`;
+}
+function svgXRail(cx,cy,w) {
+  w=w||30; const hw=w/2;
+  return `<line x1="${cx-hw}" y1="${cy}" x2="${cx+hw}" y2="${cy}" stroke="#c62828" stroke-width="4" stroke-linecap="round"/>
+    <line x1="${cx-4}" y1="${cy-6}" x2="${cx+4}" y2="${cy+6}" stroke="#c62828" stroke-width="2"/>
+    <line x1="${cx-4}" y1="${cy+6}" x2="${cx+4}" y2="${cy-6}" stroke="#c62828" stroke-width="2"/>`;
+}
+function svgUpright(cx,cy,w,color) {
+  w=w||30; const hw=w/2;
+  return `<line x1="${cx-hw}" y1="${cy}" x2="${cx+hw}" y2="${cy}" stroke="${color||"#1565c0"}" stroke-width="5" stroke-linecap="round"/>`;
+}
+function svgOxer(cx,cy,w) {
+  w=w||30; const hw=w/2, off=5;
+  return `<line x1="${cx-hw}" y1="${cy-off}" x2="${cx+hw}" y2="${cy-off}" stroke="#6a1b9a" stroke-width="4" stroke-linecap="round"/>
+    <line x1="${cx-hw}" y1="${cy+off}" x2="${cx+hw}" y2="${cy+off}" stroke="#6a1b9a" stroke-width="4" stroke-linecap="round"/>`;
+}
+function svgCircle(cx,cy,r,color) {
+  return `<ellipse cx="${cx}" cy="${cy}" rx="${r}" ry="${r*0.55}" fill="none" stroke="${color||"#388e3c"}" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.6"/>`;
+}
+function svgText(x,y,txt,size,color) {
+  return `<text x="${x}" y="${y}" font-size="${size||9}" fill="${color||"#555"}" text-anchor="middle" font-family="Georgia,serif">${txt}</text>`;
+}
+
+const DIAGRAMS = {
+  "halt-walk-transitions": () => svgArena(280,180,
+    svgCircle(140,95,65,"#388e3c") +
+    svgArrow([[140,30],[170,50],[195,90],[170,135],[140,160],[110,135],[85,90],[110,50],[140,30]],"#388e3c") +
+    svgText(140,98,"20m circle","#388e3c",10) +
+    svgText(140,20,"HALT here","#c62828",9) +
+    `<rect x="126" y="24" width="28" height="8" fill="none" stroke="#c62828" stroke-width="1" rx="2"/>`
+  ),
+  "rising-trot-poles": () => svgArena(280,180,
+    svgCircle(140,95,65,"#388e3c") +
+    [0,1,2,3].map(i=>{ const a=(i*30-45)*Math.PI/180, cx=140+55*Math.sin(a), cy=95-30*Math.cos(a); return svgPole(cx-18,cy,cx+18,cy,"#8b6914"); }).join("") +
+    svgArrow([[140,30],[165,55],[185,90],[165,132],[140,158]],"#388e3c") +
+    svgText(140,175,"Trot poles on circle","#8b6914",9)
+  ),
+  "serpentine": () => svgArena(280,180,
+    svgArrow([[30,170],[55,130],[80,90],[55,50],[80,25]],"#388e3c") +
+    svgArrow([[80,25],[140,25]],"#388e3c") +
+    svgArrow([[140,25],[165,50],[140,90],[165,130],[140,155]],"#388e3c") +
+    svgArrow([[140,155],[200,155]],"#388e3c") +
+    svgArrow([[200,155],[225,130],[200,90],[225,50],[200,25]],"#388e3c") +
+    `<line x1="140" y1="10" x2="140" y2="170" stroke="#ddd" stroke-width="1" stroke-dasharray="3,3"/>
+     <line x1="80" y1="10" x2="80" y2="170" stroke="#ddd" stroke-width="1" stroke-dasharray="3,3"/>
+     <line x1="200" y1="10" x2="200" y2="170" stroke="#ddd" stroke-width="1" stroke-dasharray="3,3"/>` +
+    svgText(140,175,"3-loop serpentine","#388e3c",9)
+  ),
+  "leg-yield-diagonal": () => svgArena(280,180,
+    svgArrow([[25,160],[80,120],[140,90],[200,60],[255,25]],"#c8871a") +
+    `<line x1="140" y1="10" x2="140" y2="170" stroke="#ddd" stroke-width="1" stroke-dasharray="3,3"/>` +
+    svgText(50,145,"Track","#888",9) +
+    svgText(145,90,"X","#c8871a",11) +
+    svgText(140,175,"Leg yield: centre line → track","#c8871a",9)
+  ),
+  "single-ground-pole": () => svgArena(280,180,
+    svgPole(110,90,170,90,"#8b6914",true) +
+    svgArrow([[140,170],[140,110]],"#388e3c") +
+    svgArrow([[140,70],[140,20]],"#388e3c") +
+    svgText(140,175,"Approach","#388e3c",9) +
+    svgText(140,82,"Ground pole","#8b6914",9)
+  ),
+  "fan-poles": () => svgArena(280,180,
+    svgCircle(140,120,80,"#388e3c") +
+    [-30,-10,10,30].map((deg)=>{ const r=(deg-90)*Math.PI/180, x1=140+45*Math.cos(r), y1=120+25*Math.sin(r), x2=140+80*Math.cos(r), y2=120+44*Math.sin(r); return svgPole(x1,y1,x2,y2,"#8b6914",true); }).join("") +
+    svgArrow([[140,30],[115,55],[95,90],[110,125]],"#388e3c") +
+    svgText(140,175,"Fan poles on circle","#8b6914",9)
+  ),
+  "line-of-poles-xrail": () => svgArena(280,180,
+    [0,1,2,3].map(i=>svgPole(60+i*45,90,85+i*45,90,"#8b6914",true)).join("") +
+    svgXRail(235,90,28) +
+    svgArrow([[30,90],[55,90]],"#388e3c") +
+    svgArrow([[250,90],[270,90]],"#388e3c") +
+    svgText(140,78,"1.3m","#888",8) +
+    svgText(235,108,"X-rail","#c62828",9) +
+    svgText(140,175,"4 trot poles → cross-rail","#8b6914",9)
+  ),
+  "single-xrail": () => svgArena(280,180,
+    svgPole(95,90,120,90,"#8b6914") +
+    svgXRail(168,90,32) +
+    svgArrow([[30,90],[90,90]],"#388e3c") +
+    svgArrow([[185,90],[260,90]],"#388e3c") +
+    svgText(108,80,"Placing pole","#8b6914",9) +
+    svgText(168,108,"Cross-rail","#c62828",9) +
+    svgText(108,100,"2.7m","#888",8) +
+    svgText(140,175,"Placing pole → cross-rail","#888",9)
+  ),
+  "figure8-xrails": () => svgArena(280,180,
+    svgXRail(100,70,28) + svgXRail(185,120,28) +
+    svgArrow([[140,90],[110,60],[80,70],[90,100],[130,105],[160,115],[190,108],[185,80],[165,65],[140,70],[140,90]],"#388e3c") +
+    svgText(100,58,"Fence 1","#c62828",9) +
+    svgText(185,138,"Fence 2","#c62828",9) +
+    svgText(140,175,"Figure-8, two cross-rails","#888",9)
+  ),
+  "medium-trot-diagonal": () => svgArena(280,180,
+    `<rect x="10" y="10" width="260" height="160" fill="none" stroke="#ccc" stroke-width="1"/>` +
+    svgArrow([[15,165],[55,125],[140,90],[225,55],[265,15]],"#c8871a") +
+    svgText(30,158,"COLLECT","#388e3c",8) +
+    svgText(140,83,"MEDIUM →","#c8871a",9) +
+    svgText(250,30,"COLLECT","#388e3c",8) +
+    svgText(140,175,"Working → Medium → Working trot diagonal","#888",9)
+  ),
+  "shoulder-in": () => svgArena(280,180,
+    `<line x1="20" y1="90" x2="260" y2="90" stroke="#ddd" stroke-width="1" stroke-dasharray="3,3"/>` +
+    [0,1,2,3,4].map(i=>svgArrow([[50+i*44,60],[50+i*44+8,75]],"#c8871a")).join("") +
+    svgArrow([[20,75],[80,75],[140,75],[200,75],[260,75]],"#c8871a") +
+    svgText(140,60,"Forehand off track (3-track)","#888",8) +
+    svgText(140,95,"Track","#bbb",8) +
+    svgText(140,175,"Shoulder-in on long side","#c8871a",9)
+  ),
+  "counter-canter": () => svgArena(280,180,
+    `<rect x="10" y="10" width="260" height="160" fill="none" stroke="#ccc" stroke-width="1"/>` +
+    svgArrow([[15,170],[15,90],[15,20],[140,20]],"#888") +
+    svgArrow([[140,20],[140,50],[140,90],[140,140],[140,170],[15,170]],"#c8871a") +
+    svgText(77,48,"Counter-canter loop","#c8871a",9) +
+    svgText(25,90,"Track","#888",8) +
+    svgText(140,175,"Shallow counter-canter loop (5m)","#888",9)
+  ),
+  "related-distance-4": () => svgArena(280,180,
+    svgUpright(80,90,32) + svgUpright(195,90,32,"#c62828") +
+    svgArrow([[20,90],[60,90]],"#388e3c") +
+    svgArrow([[210,90],[260,90]],"#388e3c") +
+    svgText(80,108,"Fence 1","#1565c0",9) +
+    svgText(195,108,"Fence 2","#c62828",9) +
+    svgText(140,78,"16-17m · 4 strides","#888",9) +
+    [1,2,3,4].map(i=>svgText(95+i*26,90,String(i),"#888",9)).join("") +
+    svgText(140,175,"4-stride related distance","#888",9)
+  ),
+  "bounce-grid": () => svgArena(280,180,
+    [0,1,2,3].map(i=>svgPole(60+i*38,90,85+i*38,90,"#8b6914",true)).join("") +
+    svgArrow([[20,90],[55,90]],"#388e3c") +
+    svgArrow([[200,90],[260,90]],"#388e3c") +
+    svgText(115,78,"3.0-3.3m each","#888",8) +
+    svgText(140,175,"Bounce grid: 4 ground poles","#8b6914",9)
+  ),
+  "full-gymnastic": () => svgArena(300,180,
+    svgXRail(55,90,26) + svgXRail(93,90,26) +
+    svgUpright(148,90,26) + svgOxer(220,90,28) +
+    svgArrow([[15,90],[38,90]],"#388e3c") +
+    svgArrow([[238,90],[280,90]],"#388e3c") +
+    svgText(74,78,"Bounce","#c62828",8) +
+    svgText(120,78,"1 stride","#1565c0",8) +
+    svgText(188,78,"2 stride","#6a1b9a",8) +
+    svgText(55,108,"X","#c62828",8) + svgText(93,108,"X","#c62828",8) +
+    svgText(148,108,"↑","#1565c0",8) + svgText(220,108,"⟺","#6a1b9a",8) +
+    svgText(150,175,"Full gymnastic: bounce → 1 stride → 2 stride oxer","#888",9)
+  ),
+  "skinny-fence": () => svgArena(280,180,
+    svgUpright(140,90,16,"#c62828") +
+    svgArrow([[40,90],[120,90]],"#388e3c") +
+    svgArrow([[160,90],[240,90]],"#388e3c") +
+    svgText(140,78,"Narrow fence","#c62828",9) +
+    svgText(140,108,"max 1m wide","#888",8) +
+    svgText(140,175,"Accuracy: skinny fence, straight approach","#888",9)
+  ),
+  "combination-turn": () => svgArena(280,180,
+    svgUpright(80,90,28) + svgUpright(118,90,28,"#c62828") + svgUpright(210,55,28,"#6a1b9a") +
+    svgArrow([[20,90],[60,90]],"#388e3c") +
+    svgArrow([[135,90],[180,80],[200,65]],"#388e3c") +
+    svgText(80,108,"In","#1565c0",9) + svgText(118,108,"Out","#c62828",9) +
+    svgText(210,43,"Turn fence","#6a1b9a",9) +
+    svgText(140,175,"Double + tight turn to single","#888",9)
+  ),
+  "jump-off-course": () => svgArena(280,180,
+    svgUpright(70,40,24) + svgUpright(200,40,24,"#c62828") +
+    svgOxer(240,100,22) + svgUpright(200,155,24,"#6a1b9a") +
+    svgUpright(70,130,24,"#c8871a") + svgXRail(130,90,22) +
+    svgArrow([[30,170],[50,140],[65,120]],"#388e3c") +
+    svgArrow([[75,120],[75,55]],"#388e3c") +
+    svgArrow([[85,40],[190,40]],"#388e3c") +
+    svgArrow([[210,50],[235,88]],"#388e3c") +
+    svgArrow([[238,115],[215,148]],"#388e3c") +
+    svgArrow([[190,158],[145,100]],"#388e3c") +
+    svgArrow([[120,90],[80,120]],"#388e3c") +
+    svgText(140,175,"6-fence jump-off: inside turns, direct lines","#888",9)
+  ),
+  "spiral-circle": () => svgArena(280,180,
+    svgCircle(140,90,75,"#388e3c") +
+    svgCircle(140,90,50,"#c8871a") +
+    svgCircle(140,90,28,"#c62828") +
+    svgArrow([[140,15],[165,30],[185,65],[175,100],[155,120]],"#388e3c") +
+    svgArrow([[130,118],[115,100],[110,75],[120,52],[140,42]],"#c8871a") +
+    svgText(220,25,"20m","#388e3c",9) + svgText(195,50,"15m","#c8871a",9) +
+    svgText(175,75,"10m","#c62828",9) +
+    svgText(140,175,"Spiral in (leg yield out)","#888",9)
+  ),
+  "half-pass": () => svgArena(280,180,
+    `<rect x="10" y="10" width="260" height="160" fill="none" stroke="#ccc" stroke-width="1"/>` +
+    svgArrow([[15,165],[70,125],[140,90],[210,55],[265,20]],"#6a1b9a") +
+    [0,1,2,3].map(i=>svgArrow([[40+i*58,150-i*38],[56+i*58,136-i*38]],"#6a1b9a")).join("") +
+    svgText(140,175,"Half-pass on diagonal: bend toward direction of travel","#888",9)
+  ),
+};
+
+// ── LEGEND ───────────────────────────────────────────────────────────────────
+const LEGEND_HTML = `<div class="legend">
+  <span class="legend-item"><span class="legend-dot" style="background:#8b6914"></span> Ground pole</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#c62828"></span> Cross-rail</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#1565c0"></span> Upright</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#6a1b9a"></span> Oxer</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#388e3c"></span> Track/direction</span>
+</div>`;
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderLevelBtns() {
+  const c = document.getElementById("level-btns");
+  c.innerHTML = LEVELS.map(l => {
+    const s = levelStyles[l];
+    const active = l === currentLevel;
+    return `<button class="level-btn" onclick="setLevel('${l}')" style="border-color:${active?s.accent:'#ddd'};background:${active?s.bg:'#faf8f4'};color:${active?s.text:'#777'};font-weight:${active?'bold':'normal'}">${l}</button>`;
+  }).join("");
+}
+function renderTypeBtns() {
+  const c = document.getElementById("type-btns");
+  c.innerHTML = TYPES.map(t => {
+    const active = t === currentType;
+    return `<button class="type-btn" onclick="setType('${t}')" style="border-color:${active?'#1c1812':'#ddd'};background:${active?'#1c1812':'#faf8f4'};color:${active?'#f5e6c8':'#777'}">${t==='Flat'?'🐴':'🏇'} ${t}</button>`;
+  }).join("");
+}
+function renderTagBtns() {
+  const c = document.getElementById("tag-btns");
+  c.innerHTML = ALL_TAGS.map(tag => {
+    const tc = TAG_COLORS[tag];
+    const active = activeTags.includes(tag);
+    return `<button class="tag-btn" onclick="toggleTag('${tag}')" style="border-color:${active?tc.border:'#ddd'};background:${active?tc.bg:'#faf8f4'};color:${active?tc.text:'#888'};font-weight:${active?'bold':'normal'}">${tag}</button>`;
+  }).join("");
+}
+
+function renderExBlock(item, accent, showDetails) {
+  if (!item) return "";
+  const diagramFn = item.diagram && DIAGRAMS[item.diagram];
+  const diagramHTML = diagramFn ? (LEGEND_HTML + diagramFn()) : "";
+  const tipsHTML = showDetails && item.coachingTips && item.coachingTips.length ?
+    `<div class="sub-label" style="color:${accent}">Coaching Tips</div>` +
+    item.coachingTips.map(t=>`<div class="tip-line">💡 ${t}</div>`).join("") : "";
+  const mistakesHTML = showDetails && item.commonMistakes && item.commonMistakes.length ?
+    `<div class="sub-label" style="color:#b03020">Watch For</div>` +
+    item.commonMistakes.map(m=>`<div class="mistake-line">⚠️ ${m}</div>`).join("") : "";
+  return `<div class="ex-block" style="border-left-color:${accent}">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+      <div class="ex-name">${item.name}</div>
+      ${item.duration ? `<div class="ex-duration">⏱ ${item.duration}</div>` : ""}
+    </div>
+    <div class="ex-desc">${item.description}</div>
+    ${diagramHTML}
+    ${tipsHTML}
+    ${mistakesHTML}
+  </div>`;
+}
+
+function renderLesson(lesson) {
+  const s = levelStyles[currentLevel];
+  const goalsHTML = lesson.goals.map(g=>`<span class="goal-chip" style="border-color:${s.accent};color:${s.text}">✓ ${g}</span>`).join("");
+  const tagsHTML = lesson.tags.map(tag=>{ const tc=TAG_COLORS[tag]; return `<span class="tag-chip" style="background:${tc.bg};color:${tc.text};border-color:${tc.border}">${tag}</span>`; }).join("");
+  const safetyHTML = lesson.safetyReminders && lesson.safetyReminders.length ?
+    `<div class="safety-box"><div class="safety-title">⚠️ Safety Reminders</div>${lesson.safetyReminders.map(s=>`<div class="safety-line">• ${s}</div>`).join("")}</div>` : "";
+
+  return `<div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 18px rgba(0,0,0,0.09);border:1px solid ${s.accent}50;margin-bottom:20px">
+    <div class="lesson-header" style="background:${s.bg};border-bottom-color:${s.accent}">
+      <div class="lesson-meta" style="color:${s.accent}">${currentType} · ${currentLevel} · ${lesson.duration}</div>
+      <div class="lesson-title" style="color:${s.text}">${lesson.title}</div>
+      <div style="margin-bottom:8px">${goalsHTML}</div>
+      <div>${tagsHTML}</div>
+    </div>
+    <div class="lesson-body">
+      <div class="section-head" style="color:#5c7a5c;border-bottom-color:#5c7a5c30">🌅 Warm-Up</div>
+      ${renderExBlock(lesson.warmup,"#5c7a5c",false)}
+      <div class="section-head" style="color:${s.accent};border-bottom-color:${s.accent}30">⚡ Main Exercises</div>
+      ${lesson.mainExercises.map(ex=>renderExBlock(ex,s.accent,true)).join("")}
+      <div class="section-head" style="color:#7a6a5c;border-bottom-color:#7a6a5c30">🌙 Cool-Down</div>
+      ${renderExBlock(lesson.cooldown,"#7a6a5c",false)}
+      ${lesson.bestPracticeNote ? `<div class="best-practice">📚 <strong>Best Practice:</strong> ${lesson.bestPracticeNote}</div>` : ""}
+      ${safetyHTML}
+      <div class="action-row">
+        <button class="new-btn" onclick="generateLesson()">🔄 New Lesson</button>
+        <button class="save-btn" onclick="saveLesson()">💾 Save</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderSaved() {
+  const sec = document.getElementById("saved-section");
+  const lbl = document.getElementById("saved-label");
+  const body = document.getElementById("saved-body");
+  if (savedLessons.length === 0) { sec.style.display = "none"; return; }
+  sec.style.display = "block";
+  lbl.textContent = `📋 Saved Lessons (${savedLessons.length})`;
+  body.innerHTML = savedLessons.map(s => {
+    const tc_html = s.tags.map(tag=>{ const tc=TAG_COLORS[tag]; return `<span class="tag-chip" style="background:${tc.bg};color:${tc.text};border-color:${tc.border};font-size:10px">${tag}</span>`; }).join("");
+    return `<div class="saved-item"><div class="saved-title">${s.title}</div><div class="saved-meta">${s._type} · ${s._level} · ${s.duration}</div><div style="margin-top:5px">${tc_html}</div></div>`;
+  }).join("");
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
+function setLevel(l) { currentLevel=l; currentLesson=null; document.getElementById("lesson-card").style.display="none"; document.getElementById("no-match").style.display="none"; renderLevelBtns(); }
+function setType(t)  { currentType=t;  currentLesson=null; document.getElementById("lesson-card").style.display="none"; document.getElementById("no-match").style.display="none"; renderTypeBtns(); }
+function toggleTag(tag) {
+  if (activeTags.includes(tag)) activeTags=activeTags.filter(t=>t!==tag); else activeTags.push(tag);
+  currentLesson=null; document.getElementById("lesson-card").style.display="none"; document.getElementById("no-match").style.display="none";
+  renderTagBtns();
+}
+function generateLesson() {
+  const pool = LESSONS[currentLevel][currentType];
+  const filtered = activeTags.length===0 ? pool : pool.filter(l=>activeTags.every(t=>l.tags.includes(t)));
+  if (filtered.length===0) {
+    document.getElementById("no-match").style.display="block";
+    document.getElementById("no-match").textContent=`No ${currentLevel} ${currentType} lessons match all selected filters. Try removing a filter or changing the lesson type.`;
+    document.getElementById("lesson-card").style.display="none";
+    return;
+  }
+  document.getElementById("no-match").style.display="none";
+  const key = currentLevel+"-"+currentType+"-"+activeTags.join(",");
+  if (!usedIds[key]) usedIds[key]=[];
+  let available = filtered.filter((_,i)=>!usedIds[key].includes(i));
+  if (available.length===0) { usedIds[key]=[]; available=filtered; }
+  const pick = available[Math.floor(Math.random()*available.length)];
+  const pickIdx = filtered.indexOf(pick);
+  usedIds[key].push(pickIdx);
+  currentLesson = pick;
+  const card = document.getElementById("lesson-card");
+  card.innerHTML = renderLesson(pick);
+  card.style.display = "block";
+  card.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function saveLesson() {
+  if (!currentLesson) return;
+  if (savedLessons.find(s=>s.title===currentLesson.title && s._level===currentLevel)) return;
+  savedLessons.push({...currentLesson, _level:currentLevel, _type:currentType});
+  renderSaved();
+}
+function toggleSaved() {
+  savedOpen=!savedOpen;
+  document.getElementById("saved-body").style.display=savedOpen?"block":"none";
+  document.getElementById("saved-arrow").textContent=savedOpen?"▲":"▼";
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderLevelBtns();
+renderTypeBtns();
+renderTagBtns();
+</script>
+</body>
+</html>
